@@ -9,7 +9,6 @@ import { VentasPage } from '@/pages/VentasPage'
 import { GastosPage } from '@/pages/GastosPage'
 import { MovimientosPage } from '@/pages/MovimientosPage'
 import { InteresPage } from '@/pages/InteresPage'
-import { ComingSoonPage } from '@/pages/ComingSoonPage'
 import { AppShell } from '@/app/AppShell'
 import { AuthGuard } from './AuthGuard'
 
