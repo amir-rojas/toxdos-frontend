@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300">
+  <defs>
+    <!-- Filtro para crear el efecto desgastado/grunge automáticamente -->
+    <filter id="efecto-grunge" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="4" result="ruido" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 6 -2.8" in="ruido" result="manchas" />
+      <feComposite operator="out" in="SourceGraphic" in2="manchas" />
+    </filter>
+
+    <!-- Máscara para borrar la línea del recuadro donde se intersectan la 'o' y la 'd' -->
+    <mask id="cut-holes">
+      <!-- El blanco mantiene visible el recuadro -->
+      <rect width="100%" height="100%" fill="white" />
+      <!-- Los círculos negros ocultan la línea justo dentro de las letras -->
+      <circle cx="250" cy="185" r="22" fill="black" />
+      <circle cx="440" cy="185" r="22" fill="black" />
+    </mask>
+  </defs>
+
+  <!-- Grupo principal del logo en gris oscuro/negro con el filtro de desgaste -->
+  <g fill="currentColor" stroke="currentColor" filter="url(#efecto-grunge)">
+
+    <!-- ==================== -->
+    <!-- PARTE IZQUIERDA "to" -->
+    <!-- ==================== -->
+
+    <!-- Letra 't' -->
+    <rect x="155" y="90" width="26" height="140" stroke="none" />
+    <rect x="155" y="206" width="45" height="24" stroke="none" />
+    <rect x="135" y="140" width="55" height="24" stroke="none" />
+
+    <!-- Letra 'o' (Intersectando la línea izquierda) -->
+    <circle cx="250" cy="185" r="32.5" stroke-width="25" fill="none" />
+
+    <!-- ==================== -->
+    <!-- CAJA CENTRAL Y "X"   -->
+    <!-- ==================== -->
+
+    <!-- Borde exterior (Ahora más rectangular y enmascarado por las letras) -->
+    <rect x="250" y="20" width="190" height="260" rx="40" ry="40" fill="none" stroke-width="28" mask="url(#cut-holes)" />
+
+    <!-- La 'X' Diagonal (Alargada) -->
+    <g stroke-width="65" stroke-linecap="butt">
+      <path d="M 285,45 L 405,255" />
+      <path d="M 405,45 L 285,255" />
+    </g>
+
+    <!-- Remates (serifas) de la 'X' adaptados al nuevo ancho -->
+    <rect x="260" y="30" width="60" height="25" stroke="none" />
+    <rect x="370" y="30" width="60" height="25" stroke="none" />
+    <rect x="260" y="245" width="60" height="25" stroke="none" />
+    <rect x="370" y="245" width="60" height="25" stroke="none" />
+
+    <!-- ==================== -->
+    <!-- PARTE DERECHA "dos"  -->
+    <!-- ==================== -->
+
+    <!-- Letra 'd' (Intersectando la línea derecha) -->
+    <rect x="462" y="60" width="26" height="170" stroke="none" />
+    <rect x="445" y="60" width="43" height="22" stroke="none" />
+    <circle cx="440" cy="185" r="32.5" stroke-width="25" fill="none" />
+
+    <!-- Letra 'o' -->
+    <circle cx="550" cy="185" r="32.5" stroke-width="25" fill="none" />
+
+    <!-- Letra 's' (Movida para mantener el balance visual) -->
+    <path d="M 685,165 C 685,152 670,152 655,152 C 640,152 625,160 625,175 C 625,185 640,190 655,195 C 675,200 685,205 685,218 C 685,230 670,230 655,230 C 635,230 620,225 615,215" fill="none" stroke-width="25" />
+    <rect x="670" y="140" width="28" height="25" stroke="none" />
+    <rect x="605" y="218" width="28" height="25" stroke="none" />
+
+  </g>
+</svg>

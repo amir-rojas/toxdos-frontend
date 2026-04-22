@@ -1,73 +1,79 @@
-# React + TypeScript + Vite
+# Toxdos — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+POS web para casa de empeños. Permite gestionar empeños, pagos, ventas, gastos y caja en tiempo real.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** + **TypeScript**
+- **Vite 8**
+- **Tailwind CSS v4** + **shadcn/ui**
+- **React Router v7**
+- **TanStack Query v5**
+- **Zustand** — estado global (auth)
+- **React Hook Form** + **Zod** — formularios y validación
+- **Axios** — cliente HTTP
 
-## React Compiler
+## Requisitos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Node.js >= 20
+- npm >= 10
 
-## Expanding the ESLint configuration
+## Configuración local
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. Clonar el repositorio:
+   ```bash
+   git clone https://github.com/amir-rojas/toxdos-frontend.git
+   cd toxdos-frontend
+   ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+2. Instalar dependencias:
+   ```bash
+   npm install
+   ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+3. Crear el archivo de variables de entorno:
+   ```bash
+   cp .env.example .env
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+4. Configurar `.env`:
+   ```env
+   VITE_API_URL=http://localhost:3000
+   ```
+
+5. Iniciar el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+
+## Scripts
+
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build de producción |
+| `npm run preview` | Preview del build |
+| `npm run lint` | Linting con ESLint |
+
+## Variables de entorno
+
+| Variable | Descripción | Ejemplo |
+|----------|-------------|---------|
+| `VITE_API_URL` | URL base del backend | `https://api.tudominio.com` |
+
+## Estructura del proyecto
+
+```
+src/
+├── app/          # Layout, sidebar, rutas protegidas
+├── components/   # Componentes UI reutilizables (shadcn)
+├── features/     # Módulos por dominio (pawns, payments, sales…)
+├── hooks/        # Custom hooks compartidos
+├── pages/        # Páginas de la aplicación
+├── router/       # Configuración de React Router
+└── shared/       # Tipos, constantes y utilidades globales
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Deploy
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+El frontend se despliega en **Vercel**. Configurar la variable `VITE_API_URL` apuntando al backend en Render.

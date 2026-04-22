@@ -1,0 +1,43 @@
+import { apiClient } from '@/shared/api/client'
+import type { PaginationMeta } from '@/shared/types/pagination'
+import type { Expense, CreateExpenseDto } from '../types'
+
+function parseExpense(raw: Expense): Expense {
+  return {
+    ...raw,
+    expense_id: Number(raw.expense_id),
+    session_id: Number(raw.session_id),
+    user_id: Number(raw.user_id),
+    amount: parseFloat(String(raw.amount)),
+  }
+}
+
+export async function getExpenses(params?: {
+  page?: number
+  limit?: number
+  dateFrom?: string
+  dateTo?: string
+}): Promise<{ data: Expense[]; meta: PaginationMeta }> {
+  const { data } = await apiClient.get<{ data: Expense[]; meta: PaginationMeta }>(
+    '/api/expenses',
+    {
+      params: {
+        page: params?.page,
+        limit: params?.limit,
+        date_from: params?.dateFrom,
+        date_to: params?.dateTo,
+      },
+    }
+  )
+  return { data: data.data.map(parseExpense), meta: data.meta }
+}
+
+export async function getExpenseById(expenseId: number): Promise<Expense> {
+  const { data } = await apiClient.get<{ data: Expense }>(`/api/expenses/${expenseId}`)
+  return parseExpense(data.data)
+}
+
+export async function createExpense(dto: CreateExpenseDto): Promise<Expense> {
+  const { data } = await apiClient.post<{ data: Expense }>('/api/expenses', dto)
+  return parseExpense(data.data)
+}
