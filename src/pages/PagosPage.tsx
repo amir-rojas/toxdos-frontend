@@ -237,7 +237,7 @@ export function PagosPage() {
               <TableHead className="text-muted-foreground text-right">Capital</TableHead>
               <TableHead className="text-muted-foreground text-right">Total</TableHead>
               <TableHead className="text-muted-foreground">Método</TableHead>
-              <TableHead className="text-muted-foreground">Fecha</TableHead>
+              <TableHead className="text-muted-foreground min-w-[168px]">Fecha</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
