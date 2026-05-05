@@ -224,7 +224,7 @@ export function PagosPage() {
       </div>
 
       {/* Tabla — desktop */}
-      <div className="hidden md:block rounded-lg border border-border overflow-hidden">
+      <div className="hidden md:block rounded-lg border border-border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
