@@ -14,7 +14,9 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Printer } from 'lucide-react'
 import { useCreatePawn } from '../api/useCreatePawn'
+import { printPawnContract } from '../api/pawns.api'
 import { useCategories } from '@/features/categories/api/useCategories'
 import { useCustomers } from '@/features/customers/api/useCustomers'
 import { CustomerFormDialog } from '@/features/customers/components/CustomerFormDialog'
@@ -35,6 +37,8 @@ const addDays = (days: number) => {
 
 export function PawnFormDialog({ open, onOpenChange }: PawnFormDialogProps) {
   const createMutation = useCreatePawn()
+  const [createdPawnId, setCreatedPawnId] = useState<number | null>(null)
+  const [printing, setPrinting] = useState(false)
   const { data: categories = [] } = useCategories()
 
   // Customer combobox state
@@ -94,6 +98,8 @@ export function PawnFormDialog({ open, onOpenChange }: PawnFormDialogProps) {
       setCustomerSearch('')
       setSelectedCustomer(null)
       setShowDropdown(false)
+      setCreatedPawnId(null)
+      setPrinting(false)
     }
   }, [open, reset])
 
@@ -108,14 +114,25 @@ export function PawnFormDialog({ open, onOpenChange }: PawnFormDialogProps) {
     selectCustomer(c)
   }
 
+  async function handlePrint() {
+    if (!createdPawnId) return
+    setPrinting(true)
+    try {
+      await printPawnContract(createdPawnId)
+    } finally {
+      setPrinting(false)
+    }
+    onOpenChange(false)
+  }
+
   function onSubmit(values: PawnFormValues) {
     const dto = {
       ...values,
       custody_rate: values.custody_rate && values.custody_rate > 0 ? values.custody_rate : undefined,
     }
     createMutation.mutate(dto, {
-      onSuccess: () => {
-        onOpenChange(false)
+      onSuccess: (pawn) => {
+        setCreatedPawnId(pawn.pawn_id)
       },
     })
   }
@@ -426,24 +443,51 @@ export function PawnFormDialog({ open, onOpenChange }: PawnFormDialogProps) {
             </div>
           )}
 
-          <DialogFooter className="pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleOpenChange(false)}
-              disabled={createMutation.isPending}
-              className="border-border"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={createMutation.isPending}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              {createMutation.isPending ? 'Guardando...' : 'Guardar empeño'}
-            </Button>
-          </DialogFooter>
+          {createdPawnId ? (
+            <div className="pt-2 space-y-3">
+              <div className="bg-green-500/10 border border-green-500/30 rounded-md px-3 py-2">
+                <p className="text-green-400 text-sm font-medium">Empeño #{createdPawnId} creado correctamente</p>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="border-border"
+                >
+                  Cerrar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handlePrint}
+                  disabled={printing}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  <Printer className="h-4 w-4 mr-2" />
+                  {printing ? 'Abriendo...' : 'Imprimir contrato'}
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleOpenChange(false)}
+                disabled={createMutation.isPending}
+                className="border-border"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {createMutation.isPending ? 'Guardando...' : 'Guardar empeño'}
+              </Button>
+            </DialogFooter>
+          )}
         </form>
       </DialogContent>
       </Dialog>

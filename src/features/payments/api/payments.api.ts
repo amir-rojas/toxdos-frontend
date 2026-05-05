@@ -48,3 +48,11 @@ export async function createPayment(dto: CreatePaymentDto): Promise<Payment> {
   const { data } = await apiClient.post<{ data: Payment }>('/api/payments', dto)
   return parsePayment(data.data)
 }
+
+export async function printPaymentVoucher(paymentId: number): Promise<void> {
+  const response = await apiClient.get<string>(`/api/payments/${paymentId}/voucher`, { responseType: 'text' })
+  const blob = new Blob([response.data], { type: 'text/html' })
+  const url = URL.createObjectURL(blob)
+  window.open(url, '_blank')
+  setTimeout(() => URL.revokeObjectURL(url), 2000)
+}

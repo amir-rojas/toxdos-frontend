@@ -3,7 +3,7 @@ import { useForm, useWatch, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { toast } from 'sonner'
-import { AlertTriangle, Banknote, QrCode, ArrowLeftRight } from 'lucide-react'
+import { AlertTriangle, Banknote, QrCode, ArrowLeftRight, Printer } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label'
 import { usePawns } from '@/features/pawns/api/usePawns'
 import { usePawnDebt } from '@/features/pawns/api/usePawnDebt'
 import { useCreatePayment } from '../api/useCreatePayment'
+import { printPaymentVoucher } from '../api/payments.api'
 import { paymentSchema, type PaymentFormValues } from '../schemas/payment.schema'
 import type { Pawn } from '@/features/pawns/types'
 
@@ -102,6 +103,8 @@ const PAYMENT_METHODS = [
 
 export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: PaymentFormDialogProps) {
   const createMutation = useCreatePayment()
+  const [createdPaymentId, setCreatedPaymentId] = useState<number | null>(null)
+  const [printing, setPrinting] = useState(false)
 
   // Pawn combobox state (solo cuando no hay preloadedPawn)
   const [pawnInput, setPawnInput] = useState('')
@@ -181,6 +184,8 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
       setSelectedPawn(pawn)
       setPawnInput('')
       setShowDropdown(false)
+      setCreatedPaymentId(null)
+      setPrinting(false)
       reset({
         pawn_id: pawn?.pawn_id,
         payment_type: 'interest',
@@ -202,6 +207,17 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
     setValue('principal_amount', 0)
   }
 
+  async function handlePrintVoucher() {
+    if (!createdPaymentId) return
+    setPrinting(true)
+    try {
+      await printPaymentVoucher(createdPaymentId)
+    } finally {
+      setPrinting(false)
+    }
+    onOpenChange(false)
+  }
+
   function onSubmit(values: PaymentFormValues) {
     const dto = {
       pawn_id: values.pawn_id,
@@ -212,13 +228,13 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
       principal_amount: values.principal_amount > 0 ? values.principal_amount : undefined,
     }
     createMutation.mutate(dto, {
-      onSuccess: () => {
-        const msg =
-          values.payment_type === 'redemption'
-            ? 'Empeño rescatado exitosamente'
-            : 'Pago registrado correctamente'
-        toast.success(msg)
-        onOpenChange(false)
+      onSuccess: (payment) => {
+        if (values.payment_type === 'interest') {
+          setCreatedPaymentId(payment.payment_id)
+        } else {
+          toast.success('Empeño rescatado exitosamente')
+          onOpenChange(false)
+        }
       },
     })
   }
@@ -426,24 +442,51 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
             </div>
           )}
 
-          <DialogFooter className="pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleOpenChange(false)}
-              disabled={createMutation.isPending}
-              className="border-border"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={createMutation.isPending || total === 0 || !selectedPawn}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              {createMutation.isPending ? 'Procesando...' : 'Confirmar pago'}
-            </Button>
-          </DialogFooter>
+          {createdPaymentId ? (
+            <div className="pt-2 space-y-3">
+              <div className="bg-green-500/10 border border-green-500/30 rounded-md px-3 py-2">
+                <p className="text-green-400 text-sm font-medium">Renovación registrada correctamente</p>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="border-border"
+                >
+                  Cerrar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handlePrintVoucher}
+                  disabled={printing}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  <Printer className="h-4 w-4 mr-2" />
+                  {printing ? 'Abriendo...' : 'Imprimir comprobante'}
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleOpenChange(false)}
+                disabled={createMutation.isPending}
+                className="border-border"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending || total === 0 || !selectedPawn}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {createMutation.isPending ? 'Procesando...' : 'Confirmar pago'}
+              </Button>
+            </DialogFooter>
+          )}
         </form>
       </DialogContent>
     </Dialog>

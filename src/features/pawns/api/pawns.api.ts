@@ -48,3 +48,11 @@ export async function forfeitPawn(pawnId: number): Promise<PawnWithItems> {
   const { data } = await apiClient.patch<{ data: PawnWithItems }>(`/api/pawns/${pawnId}/forfeit`)
   return data.data
 }
+
+export async function printPawnContract(pawnId: number): Promise<void> {
+  const response = await apiClient.get<string>(`/api/pawns/${pawnId}/contract`, { responseType: 'text' })
+  const blob = new Blob([response.data], { type: 'text/html' })
+  const url = URL.createObjectURL(blob)
+  window.open(url, '_blank')
+  setTimeout(() => URL.revokeObjectURL(url), 2000)
+}
