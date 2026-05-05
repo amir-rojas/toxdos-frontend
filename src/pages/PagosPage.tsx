@@ -297,7 +297,7 @@ export function PagosPage() {
                   <TableCell className="text-foreground text-sm">
                     {PAYMENT_METHOD_LABEL[p.payment_method]}
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
+                  <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                     {formatDate(p.paid_at)}
                   </TableCell>
                 </TableRow>
