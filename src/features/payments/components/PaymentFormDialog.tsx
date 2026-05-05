@@ -130,6 +130,8 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
 
   // Debt del empeño seleccionado — se re-fetches cada vez que cambia el pawn
   const { data: debt, isLoading: loadingDebt } = usePawnDebt(selectedPawn?.pawn_id)
+  const debtRef = useRef(debt)
+  debtRef.current = debt
 
   const {
     register,
@@ -159,7 +161,7 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
   const showCustody = selectedPawn ? parseFloat(selectedPawn.custody_rate) > 0 : false
   const showPrincipal = paymentType === 'redemption'
 
-  // Pre-llenar montos cuando llega la deuda del backend
+  // Pre-llenar montos cuando llega la deuda del backend (primer open: debt llega después del reset)
   useEffect(() => {
     if (!debt) return
     setValue('interest_amount', debt.interest_amount)
@@ -177,10 +179,12 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
     }
   }, [paymentType, debt, setValue])
 
-  // Reset al abrir
+  // Reset al abrir — lee debtRef para pre-llenar en reaperturas donde debt ya está cacheado
   useEffect(() => {
     if (open) {
       const pawn = preloadedPawn ?? null
+      const cachedDebt = debtRef.current
+      const hasCustody = pawn ? parseFloat(pawn.custody_rate) > 0 : false
       setSelectedPawn(pawn)
       setPawnInput('')
       setShowDropdown(false)
@@ -190,8 +194,8 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
         pawn_id: pawn?.pawn_id,
         payment_type: 'interest',
         payment_method: 'cash',
-        interest_amount: 0,
-        custody_amount: 0,
+        interest_amount: cachedDebt?.interest_amount ?? 0,
+        custody_amount: hasCustody ? (cachedDebt?.custody_amount ?? 0) : 0,
         principal_amount: 0,
       })
     }

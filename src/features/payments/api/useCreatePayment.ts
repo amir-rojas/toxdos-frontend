@@ -6,11 +6,9 @@ export function useCreatePayment() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (dto: CreatePaymentDto) => createPayment(dto),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payments'] })
-      if (variables.payment_type === 'redemption') {
-        queryClient.invalidateQueries({ queryKey: ['pawns'] })
-      }
+      queryClient.invalidateQueries({ queryKey: ['pawns'] })
     },
   })
 }
