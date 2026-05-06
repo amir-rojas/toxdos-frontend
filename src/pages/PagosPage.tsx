@@ -237,7 +237,7 @@ export function PagosPage() {
               <TableHead className="text-muted-foreground text-right">Capital</TableHead>
               <TableHead className="text-muted-foreground text-right">Total</TableHead>
               <TableHead className="text-muted-foreground">Método</TableHead>
-              <TableHead className="text-muted-foreground min-w-[168px]">Fecha</TableHead>
+              <TableHead className="text-muted-foreground min-w-[185px]">Fecha</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -297,7 +297,7 @@ export function PagosPage() {
                   <TableCell className="text-foreground text-sm">
                     {PAYMENT_METHOD_LABEL[p.payment_method]}
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
+                  <TableCell className="text-muted-foreground text-sm whitespace-nowrap min-w-[185px]">
                     {formatDate(p.paid_at)}
                   </TableCell>
                 </TableRow>
