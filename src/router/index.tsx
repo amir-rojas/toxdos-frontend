@@ -11,11 +11,16 @@ import { MovimientosPage } from '@/pages/MovimientosPage'
 import { InteresPage } from '@/pages/InteresPage'
 import { AppShell } from '@/app/AppShell'
 import { AuthGuard } from './AuthGuard'
+import { NotFoundPage } from '@/pages/NotFoundPage'
 
 export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '*',
+    element: <NotFoundPage />,
   },
   {
     path: '/',
