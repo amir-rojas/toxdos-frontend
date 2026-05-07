@@ -44,11 +44,6 @@ const PAYMENT_METHOD_LABEL: Record<Payment['payment_method'], string> = {
   qr: 'QR',
 }
 
-function isToday(iso: string): boolean {
-  const today = new Date().toISOString().split('T')[0]
-  return iso.split('T')[0] === today
-}
-
 export function PagosPage() {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [searchInput, setSearchInput] = useState('')
@@ -85,9 +80,8 @@ export function PagosPage() {
   const payments = paymentsResult?.data ?? []
   const pawns = pawnsResult?.data ?? []
 
-  const today = payments.filter((p) => isToday(p.paid_at))
-  const cobradoHoy = today.reduce((sum, p) => sum + parseFloat(p.total), 0)
-  const pagosHoy = today.length
+  const cobradoHoy = parseFloat(paymentsResult?.stats?.collected_today ?? '0')
+  const pagosHoy = paymentsResult?.stats?.count_today ?? 0
   const empenosActivos = pawns.filter(
     (p) => p.status === 'active' || p.status === 'renewed'
   ).length

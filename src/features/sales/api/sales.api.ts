@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api/client'
 import type { PaginationMeta } from '@/shared/types/pagination'
-import type { Sale, CreateSaleDto } from '../types'
+import type { Sale, SalesStats, CreateSaleDto } from '../types'
 
 function parseSale(raw: Sale): Sale {
   return {
@@ -15,12 +15,12 @@ function parseSale(raw: Sale): Sale {
 
 export async function getSales(
   pagination?: { page?: number; limit?: number }
-): Promise<{ data: Sale[]; meta: PaginationMeta }> {
-  const { data } = await apiClient.get<{ data: Sale[]; meta: PaginationMeta }>(
+): Promise<{ data: Sale[]; meta: PaginationMeta; stats: SalesStats }> {
+  const { data } = await apiClient.get<{ data: Sale[]; meta: PaginationMeta; stats: SalesStats }>(
     '/api/sales',
     { params: pagination }
   )
-  return { data: data.data.map(parseSale), meta: data.meta }
+  return { data: data.data.map(parseSale), meta: data.meta, stats: data.stats }
 }
 
 export async function getSaleById(saleId: number): Promise<Sale> {

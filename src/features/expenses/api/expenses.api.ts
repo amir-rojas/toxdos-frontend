@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api/client'
 import type { PaginationMeta } from '@/shared/types/pagination'
-import type { Expense, CreateExpenseDto } from '../types'
+import type { Expense, ExpensesStats, CreateExpenseDto } from '../types'
 
 function parseExpense(raw: Expense): Expense {
   return {
@@ -17,8 +17,8 @@ export async function getExpenses(params?: {
   limit?: number
   dateFrom?: string
   dateTo?: string
-}): Promise<{ data: Expense[]; meta: PaginationMeta }> {
-  const { data } = await apiClient.get<{ data: Expense[]; meta: PaginationMeta }>(
+}): Promise<{ data: Expense[]; meta: PaginationMeta; stats: ExpensesStats }> {
+  const { data } = await apiClient.get<{ data: Expense[]; meta: PaginationMeta; stats: ExpensesStats }>(
     '/api/expenses',
     {
       params: {
@@ -29,7 +29,7 @@ export async function getExpenses(params?: {
       },
     }
   )
-  return { data: data.data.map(parseExpense), meta: data.meta }
+  return { data: data.data.map(parseExpense), meta: data.meta, stats: data.stats }
 }
 
 export async function getExpenseById(expenseId: number): Promise<Expense> {

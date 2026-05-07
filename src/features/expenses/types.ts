@@ -7,6 +7,10 @@ export interface Expense {
   created_at: string
 }
 
+export interface ExpensesStats {
+  total_amount: string
+}
+
 export interface CreateExpenseDto {
   concept: string
   amount: number

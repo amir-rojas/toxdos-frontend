@@ -1,3 +1,8 @@
+export interface SalesStats {
+  sold_today: string
+  count_today: number
+}
+
 export interface Sale {
   sale_id: number
   item_id: number

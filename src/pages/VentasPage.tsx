@@ -23,11 +23,6 @@ const PAYMENT_METHOD_LABEL: Record<Sale['payment_method'], string> = {
   qr: 'QR',
 }
 
-function isToday(iso: string): boolean {
-  const today = new Date().toISOString().split('T')[0]
-  return iso.split('T')[0] === today
-}
-
 export function VentasPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [sessionWarning, setSessionWarning] = useState(false)
@@ -37,10 +32,9 @@ export function VentasPage() {
 
   const sales = salesResult?.data ?? []
 
-  const todaySales = sales.filter((s) => isToday(s.sold_at))
-  const totalVendidoHoy = todaySales.reduce((sum, s) => sum + s.sale_price, 0)
-  const ventasHoy = todaySales.length
-  const totalVentas = sales.length
+  const totalVendidoHoy = parseFloat(salesResult?.stats?.sold_today ?? '0')
+  const ventasHoy = salesResult?.stats?.count_today ?? 0
+  const totalVentas = salesResult?.meta?.total ?? 0
 
   function handleNuevaVenta() {
     if (!activeSession) {

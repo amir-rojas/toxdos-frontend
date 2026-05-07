@@ -36,7 +36,8 @@ export function GastosPage() {
   })
 
   const expenses       = expensesResult?.data ?? []
-  const totalMonto     = expenses.reduce((sum, e) => sum + e.amount, 0)
+  const totalMonto     = parseFloat(expensesResult?.stats?.total_amount ?? '0')
+  const totalCount     = expensesResult?.meta?.total ?? 0
   const statLabel      = hasDateFilter ? 'En el período' : 'Total cargado'
 
   function handleNuevoGasto() {
@@ -100,7 +101,7 @@ export function GastosPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <StatCard label={statLabel}         value={isLoading ? null : `Bs ${totalMonto.toFixed(2)}`} />
-        <StatCard label="Cantidad de gastos" value={isLoading ? null : String(expenses.length)} />
+        <StatCard label="Cantidad de gastos" value={isLoading ? null : String(totalCount)} />
       </div>
 
       {/* Tabla — desktop */}
