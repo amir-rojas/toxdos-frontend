@@ -111,6 +111,7 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
   const [showDropdown, setShowDropdown] = useState(false)
   const [selectedPawn, setSelectedPawn] = useState<Pawn | null>(preloadedPawn ?? null)
   const suppressNextFocus = useRef(false)
+  const isSubmittingRef = useRef(false)
 
   const { data: pawnsResult } = usePawns(undefined, { limit: 100 })
   const allPawns = pawnsResult?.data ?? []
@@ -143,59 +144,49 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
   } = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
-      pawn_id: preloadedPawn?.pawn_id,
-      payment_type: 'interest',
-      payment_method: 'cash',
-      interest_amount: 0,
-      custody_amount: 0,
+      pawn_id:          preloadedPawn?.pawn_id,
+      payment_type:     'interest',
+      payment_method:   'cash',
+      months_paid:      1,
       principal_amount: 0,
     },
   })
 
-  const paymentType = useWatch({ control, name: 'payment_type' })
-  const interestAmt = useWatch({ control, name: 'interest_amount' }) ?? 0
-  const custodyAmt = useWatch({ control, name: 'custody_amount' }) ?? 0
+  const paymentType  = useWatch({ control, name: 'payment_type' })
+  const monthsPaid   = useWatch({ control, name: 'months_paid' }) ?? 1
   const principalAmt = useWatch({ control, name: 'principal_amount' }) ?? 0
-  const total = (Number(interestAmt) || 0) + (Number(custodyAmt) || 0) + (Number(principalAmt) || 0)
 
-  const showCustody = selectedPawn ? parseFloat(selectedPawn.custody_rate) > 0 : false
+  const showCustody  = selectedPawn ? parseFloat(selectedPawn.custody_rate) > 0 : false
   const showPrincipal = paymentType === 'redemption'
 
-  // Pre-llenar montos cuando llega la deuda del backend (primer open: debt llega después del reset)
-  useEffect(() => {
-    if (!debt) return
-    setValue('interest_amount', debt.interest_amount)
-    if (showCustody) {
-      setValue('custody_amount', debt.custody_amount)
-    }
-  }, [debt, showCustody, setValue])
+  const interestAmt = debt ? debt.interest_per_block * monthsPaid : 0
+  const custodyAmt  = debt && showCustody ? debt.custody_per_block * monthsPaid : 0
+  const total       = interestAmt + custodyAmt + (Number(principalAmt) || 0)
 
-  // Pre-llenar capital cuando se cambia a rescate
+  // Cuando cambia el tipo a rescate: fijar months_paid = blocks_due y pre-llenar capital
   useEffect(() => {
     if (paymentType === 'redemption' && debt) {
+      setValue('months_paid', debt.blocks_due)
       setValue('principal_amount', debt.loan_amount)
     } else {
       setValue('principal_amount', 0)
     }
   }, [paymentType, debt, setValue])
 
-  // Reset al abrir — lee debtRef para pre-llenar en reaperturas donde debt ya está cacheado
+  // Reset al abrir
   useEffect(() => {
     if (open) {
-      const pawn = preloadedPawn ?? null
-      const cachedDebt = debtRef.current
-      const hasCustody = pawn ? parseFloat(pawn.custody_rate) > 0 : false
-      setSelectedPawn(pawn)
+      isSubmittingRef.current = false
+      setSelectedPawn(preloadedPawn ?? null)
       setPawnInput('')
       setShowDropdown(false)
       setCreatedPaymentId(null)
       setPrinting(false)
       reset({
-        pawn_id: pawn?.pawn_id,
-        payment_type: 'interest',
-        payment_method: 'cash',
-        interest_amount: cachedDebt?.interest_amount ?? 0,
-        custody_amount: hasCustody ? (cachedDebt?.custody_amount ?? 0) : 0,
+        pawn_id:          preloadedPawn?.pawn_id,
+        payment_type:     'interest',
+        payment_method:   'cash',
+        months_paid:      1,
         principal_amount: 0,
       })
     }
@@ -206,8 +197,7 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
     setPawnInput('')
     setShowDropdown(false)
     setValue('pawn_id', p.pawn_id, { shouldValidate: true })
-    setValue('interest_amount', 0)
-    setValue('custody_amount', 0)
+    setValue('months_paid', 1)
     setValue('principal_amount', 0)
   }
 
@@ -223,22 +213,28 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
   }
 
   function onSubmit(values: PaymentFormValues) {
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
+
     const dto = {
-      pawn_id: values.pawn_id,
-      payment_type: values.payment_type,
-      payment_method: values.payment_method,
-      interest_amount: values.interest_amount > 0 ? values.interest_amount : undefined,
-      custody_amount: values.custody_amount > 0 ? values.custody_amount : undefined,
+      pawn_id:          values.pawn_id,
+      payment_type:     values.payment_type,
+      payment_method:   values.payment_method,
+      months_paid:      values.months_paid,
       principal_amount: values.principal_amount > 0 ? values.principal_amount : undefined,
     }
     createMutation.mutate(dto, {
       onSuccess: (payment) => {
+        isSubmittingRef.current = false
         if (values.payment_type === 'interest') {
           setCreatedPaymentId(payment.payment_id)
         } else {
           toast.success('Empeño rescatado exitosamente')
           onOpenChange(false)
         }
+      },
+      onError: () => {
+        isSubmittingRef.current = false
       },
     })
   }
@@ -348,55 +344,93 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
             )}
           </div>
 
-          {/* Sección 3: Montos */}
+          {/* Sección 3: Bloques a pagar */}
           <div className="space-y-3">
             <Label className="text-foreground/80 text-xs font-semibold uppercase tracking-wide">
-              Montos
+              Bloques a pagar
             </Label>
 
-            <div className="space-y-2">
+            {selectedPawn && (
+              <>
+                {/* Stepper */}
+                <Controller
+                  control={control}
+                  name="months_paid"
+                  render={({ field }) => (
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="button"
+                        disabled={field.value <= 1 || paymentType === 'redemption'}
+                        onClick={() => field.onChange(Math.max(1, field.value - 1))}
+                        className="h-9 w-9 rounded-md border border-border text-foreground text-lg font-medium hover:bg-muted/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      >
+                        −
+                      </button>
+                      <span className="text-2xl font-bold tabular-nums w-8 text-center text-foreground">
+                        {field.value}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={!debt || loadingDebt || field.value >= debt.blocks_due || paymentType === 'redemption'}
+                        onClick={() => field.onChange(Math.min(debt?.blocks_due ?? 1, field.value + 1))}
+                        className="h-9 w-9 rounded-md border border-border text-foreground text-lg font-medium hover:bg-muted/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      >
+                        +
+                      </button>
+                      {debt && (
+                        <span className="text-xs text-muted-foreground">
+                          Pagando{' '}
+                          <span className="font-medium text-foreground">{field.value}</span>
+                          {' '}de{' '}
+                          <span className="font-medium text-foreground">{debt.blocks_due}</span>
+                          {' '}bloque(s)
+                        </span>
+                      )}
+                      {loadingDebt && (
+                        <span className="text-xs text-muted-foreground">Calculando...</span>
+                      )}
+                    </div>
+                  )}
+                />
+                {errors.months_paid && (
+                  <p className="text-destructive text-xs">{errors.months_paid.message}</p>
+                )}
+
+                {/* Desglose calculado */}
+                {debt && (
+                  <div className="rounded-md bg-muted/20 border border-border px-3 py-2.5 space-y-1.5 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Interés</span>
+                      <span className="font-medium text-foreground">
+                        Bs {interestAmt.toFixed(2)}
+                      </span>
+                    </div>
+                    {showCustody && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Custodia</span>
+                        <span className="font-medium text-foreground">
+                          Bs {custodyAmt.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {showPrincipal && (
               <div className="space-y-1.5">
-                <Label className="text-foreground/70 text-sm">Interés (Bs)</Label>
+                <Label className="text-foreground/70 text-sm">Capital (Bs)</Label>
                 <Input
                   type="number"
                   step="0.01"
-                  readOnly
-                  disabled={loadingDebt}
-                  placeholder={loadingDebt ? 'Calculando...' : '0.00'}
-                  className="bg-input/30 border-border h-10 cursor-default text-muted-foreground"
-                  {...register('interest_amount', { valueAsNumber: true })}
+                  min="0"
+                  placeholder="0.00"
+                  className="bg-input/50 border-border focus-visible:ring-primary h-10"
+                  {...register('principal_amount', { valueAsNumber: true })}
                 />
               </div>
-
-              {showCustody && (
-                <div className="space-y-1.5">
-                  <Label className="text-foreground/70 text-sm">Custodia (Bs)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    readOnly
-                    disabled={loadingDebt}
-                    placeholder={loadingDebt ? 'Calculando...' : '0.00'}
-                    className="bg-input/30 border-border h-10 cursor-default text-muted-foreground"
-                    {...register('custody_amount', { valueAsNumber: true })}
-                  />
-                </div>
-              )}
-
-              {showPrincipal && (
-                <div className="space-y-1.5">
-                  <Label className="text-foreground/70 text-sm">Capital (Bs)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    className="bg-input/50 border-border focus-visible:ring-primary h-10"
-                    {...register('principal_amount', { valueAsNumber: true })}
-                  />
-                </div>
-              )}
-            </div>
+            )}
 
             <div className="border-t border-border pt-2 flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Total</span>
@@ -435,10 +469,6 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
               )}
             />
           </div>
-
-          {errors.interest_amount && (
-            <p className="text-destructive text-xs">{errors.interest_amount.message}</p>
-          )}
 
           {errorMessage && (
             <div className="bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">
@@ -484,7 +514,7 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
               </Button>
               <Button
                 type="submit"
-                disabled={createMutation.isPending || total === 0 || !selectedPawn}
+                disabled={createMutation.isPending || !selectedPawn || !debt}
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {createMutation.isPending ? 'Procesando...' : 'Confirmar pago'}
@@ -501,10 +531,11 @@ function resolveErrorMessage(error: unknown): string | null {
   if (!error) return null
   if (axios.isAxiosError(error)) {
     const code = error.response?.data?.code as string | undefined
-    if (code === 'NO_OPEN_SESSION')  return 'No hay sesión de caja abierta.'
-    if (code === 'PAWN_NOT_PAYABLE') return 'Este empeño ya no puede recibir pagos.'
-    if (code === 'PAWN_NOT_FOUND')   return 'Empeño no encontrado.'
-    if (code === 'VALIDATION_ERROR') return error.response?.data?.error ?? 'Datos inválidos.'
+    if (code === 'NO_OPEN_SESSION')                return 'No hay sesión de caja abierta.'
+    if (code === 'PAWN_NOT_PAYABLE')               return 'Este empeño ya no puede recibir pagos.'
+    if (code === 'PAWN_NOT_FOUND')                 return 'Empeño no encontrado.'
+    if (code === 'MONTHS_PAID_EXCEEDS_BLOCKS_DUE') return 'La cantidad de bloques supera la deuda actual.'
+    if (code === 'VALIDATION_ERROR')               return error.response?.data?.error ?? 'Datos inválidos.'
     if ((error.response?.status ?? 0) >= 500) return 'Error del servidor. Intentá de nuevo.'
   }
   return 'Error inesperado. Intentá de nuevo.'

@@ -100,18 +100,18 @@ export function InteresPage() {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
           <SectionTitle
-            title="Termómetro de hoy"
-            subtitle="Lo que generó tu cartera mientras dormías."
+            title="Proyección mensual"
+            subtitle="Ingreso estimado si todos los empeños activos renuevan este mes."
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <KpiCard
-            label="Interés acumulado hoy"
+            label="Interés mensual estimado"
             value={loading ? null : formatCurrency(data.today_interest)}
             valueClassName="text-emerald-500"
           />
           <KpiCard
-            label="Custodia acumulada hoy"
+            label="Custodia mensual estimada"
             value={loading ? null : formatCurrency(data.today_custody)}
             valueClassName="text-emerald-500"
           />

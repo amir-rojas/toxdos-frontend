@@ -73,7 +73,7 @@ function OverduePawnItem({ row, onNavigate }: { row: OverduePawnRow; onNavigate:
         <p className="text-sm font-medium text-foreground truncate">{row.customer_name}</p>
         <p className="text-xs text-muted-foreground truncate">{row.first_item_description}</p>
         <p className="text-xs text-red-400 mt-0.5">
-          Vencido hace {row.days_overdue}d · {formatCurrency(row.loan_amount)}
+          Vencido {row.months_overdue} mes(es) · {formatCurrency(row.loan_amount)}
         </p>
       </div>
       <button

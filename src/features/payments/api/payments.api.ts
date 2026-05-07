@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api/client'
 import type { PaginationMeta } from '@/shared/types/pagination'
-import type { Payment, CreatePaymentDto } from '../types'
+import type { Payment, PaymentsStats, CreatePaymentDto } from '../types'
 
 function parsePayment(raw: Payment): Payment {
   return {
@@ -25,7 +25,7 @@ export async function getPayments(
     paidTo?: string
   },
   pagination?: { page?: number; limit?: number }
-): Promise<{ data: Payment[]; meta: PaginationMeta }> {
+): Promise<{ data: Payment[]; meta: PaginationMeta; stats: PaymentsStats }> {
   const params = {
     ...(filters?.pawnId     !== undefined ? { pawn_id:        filters.pawnId }        : {}),
     ...(filters?.search                   ? { search:         filters.search }         : {}),
@@ -35,8 +35,8 @@ export async function getPayments(
     ...(filters?.paidTo                   ? { paid_to:        filters.paidTo }         : {}),
     ...pagination,
   }
-  const { data } = await apiClient.get<{ data: Payment[]; meta: PaginationMeta }>('/api/payments', { params })
-  return { data: data.data.map(parsePayment), meta: data.meta }
+  const { data } = await apiClient.get<{ data: Payment[]; meta: PaginationMeta; stats: PaymentsStats }>('/api/payments', { params })
+  return { data: data.data.map(parsePayment), meta: data.meta, stats: data.stats }
 }
 
 export async function getPaymentById(paymentId: number): Promise<Payment> {

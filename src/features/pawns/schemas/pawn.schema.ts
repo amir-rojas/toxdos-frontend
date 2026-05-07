@@ -20,6 +20,14 @@ export const pawnSchema = z
     items: z.array(itemSchema).min(1, 'Al menos un artículo es requerido'),
   })
   .superRefine((data, ctx) => {
+    if (data.due_date <= data.start_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'La fecha de vencimiento debe ser posterior a la fecha de inicio',
+        path: ['due_date'],
+      })
+    }
+
     const totalAppraised = data.items.reduce(
       (sum, item) => sum + (item.appraised_value || 0),
       0,

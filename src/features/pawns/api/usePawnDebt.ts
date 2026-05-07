@@ -2,28 +2,31 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/shared/api/client'
 
 export interface PawnDebt {
-  interest_amount: number
-  custody_amount: number
-  loan_amount: number
+  loan_amount:        number
+  interest_per_block: number
+  custody_per_block:  number
+  blocks_due:         number
 }
 
 interface RawPawnDebt {
-  interest_amount: string | number
-  custody_amount: string | number
-  loan_amount: string | number
+  loan_amount:        string | number
+  interest_per_block: string | number
+  custody_per_block:  string | number
+  blocks_due:         string | number
 }
 
 function round2(v: string | number): number {
-  return Math.round(parseFloat(String(v)) * 100) / 100
+  return parseFloat(parseFloat(String(v)).toFixed(2))
 }
 
 async function getPawnDebt(pawnId: number): Promise<PawnDebt> {
   const { data } = await apiClient.get<{ data: RawPawnDebt }>(`/api/pawns/${pawnId}/debt`)
   const raw = data.data
   return {
-    interest_amount: round2(raw.interest_amount),
-    custody_amount: round2(raw.custody_amount),
-    loan_amount: round2(raw.loan_amount),
+    loan_amount:        round2(raw.loan_amount),
+    interest_per_block: round2(raw.interest_per_block),
+    custody_per_block:  round2(raw.custody_per_block),
+    blocks_due:         parseInt(String(raw.blocks_due), 10),
   }
 }
 
