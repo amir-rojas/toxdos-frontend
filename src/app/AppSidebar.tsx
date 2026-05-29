@@ -23,7 +23,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ChevronUp, LogOut, User } from 'lucide-react'
 import { useAuthStore } from '@/shared/store/auth.store'
-import { NAV_GROUPS } from './nav-config'
+import { getNavForRole } from './nav-config'
 
 export function AppSidebar() {
   const user = useAuthStore((s) => s.user)
@@ -79,7 +79,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {NAV_GROUPS.map((group) => (
+        {getNavForRole(user?.role ?? 'cashier').map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel className="text-muted-foreground/60 text-[10px] tracking-widest uppercase px-2">
               {group.label}
