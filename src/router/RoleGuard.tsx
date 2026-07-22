@@ -4,7 +4,7 @@ import type { UserRole } from '@/shared/types'
 import type { ReactNode } from 'react'
 
 interface RoleGuardProps {
-  allowedRoles: UserRole[]
+  allowedRoles: readonly UserRole[]
   children: ReactNode
   redirectTo?: string
 }
