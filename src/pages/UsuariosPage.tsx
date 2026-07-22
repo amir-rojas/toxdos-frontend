@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { UserCog, UserPlus } from 'lucide-react'
+import { AlertCircle, UserCog, UserPlus } from 'lucide-react'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
@@ -13,7 +13,7 @@ import { ChangePasswordDialog }  from '@/features/users/components/ChangePasswor
 import type { AppUser } from '@/features/users/types'
 
 export function UsuariosPage() {
-  const { data: users = [], isLoading } = useUsers()
+  const { data: users = [], isLoading, isError } = useUsers()
 
   const [createOpen,    setCreateOpen]    = useState(false)
   const [editUser,      setEditUser]      = useState<AppUser | null>(null)
@@ -61,6 +61,13 @@ export function UsuariosPage() {
                   <TableCell />
                 </TableRow>
               ))
+            ) : isError ? (
+              <TableRow className="border-border">
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-10">
+                  <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-30 text-destructive" />
+                  No se pudo cargar la lista de usuarios. Intentá de nuevo.
+                </TableCell>
+              </TableRow>
             ) : users.length === 0 ? (
               <TableRow className="border-border">
                 <TableCell colSpan={5} className="text-center text-muted-foreground py-10">

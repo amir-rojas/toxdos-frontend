@@ -79,7 +79,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {getNavForRole(user?.role ?? 'cashier').map((group) => (
+        {user && getNavForRole(user.role).map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel className="text-muted-foreground/60 text-[10px] tracking-widest uppercase px-2">
               {group.label}
