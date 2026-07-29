@@ -34,7 +34,7 @@ const MODAL_TITLE: Record<ReferenceType, string> = {
 
 const PAYMENT_TYPE_LABEL: Record<Payment['payment_type'], string> = {
   interest:   'Interés',
-  redemption: 'Rescate',
+  redemption: 'Cancelar',
   partial:    'Parcial',
 }
 
@@ -47,7 +47,7 @@ const PAYMENT_METHOD_LABEL: Record<Payment['payment_method'], string> = {
 const PAWN_STATUS_LABEL: Record<PawnWithItems['status'], string> = {
   active:    'Activo',
   renewed:   'Renovado',
-  redeemed:  'Rescatado',
+  redeemed:  'Cancelado',
   forfeited: 'Decomisado',
 }
 

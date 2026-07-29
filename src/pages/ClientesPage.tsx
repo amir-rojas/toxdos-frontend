@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Search, UserPlus, Pencil } from 'lucide-react'
 import {
   Table,
@@ -12,10 +13,14 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useCustomers, useCustomersList } from '@/features/customers/api/useCustomers'
 import { CustomerFormDialog } from '@/features/customers/components/CustomerFormDialog'
+import { useCurrentUser } from '@/shared/hooks/useCurrentUser'
 import { formatDate } from '@/shared/utils/format'
 import type { Customer } from '@/features/customers/types'
 
 export function ClientesPage() {
+  const navigate = useNavigate()
+  const currentUser = useCurrentUser()
+  const isAdmin = currentUser?.role === 'admin'
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -110,7 +115,20 @@ export function ClientesPage() {
               </TableRow>
             )}
             {customers.map((c) => (
-              <TableRow key={c.customer_id} className="border-border hover:bg-muted/30">
+              <TableRow
+                key={c.customer_id}
+                className="border-border hover:bg-muted/30 cursor-pointer"
+                tabIndex={0}
+                role="link"
+                aria-label={`Ver historial de ${c.full_name}`}
+                onClick={() => navigate(`/clientes/${c.customer_id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    navigate(`/clientes/${c.customer_id}`)
+                  }
+                }}
+              >
                 <TableCell className="text-foreground font-mono text-sm font-medium">
                   {c.id_number}
                 </TableCell>
@@ -133,15 +151,20 @@ export function ClientesPage() {
                   {formatDate(c.created_at)}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => openEditDialog(c)}
-                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                    <span className="sr-only">Editar</span>
-                  </Button>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        openEditDialog(c)
+                      }}
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      <span className="sr-only">Editar</span>
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -161,7 +184,20 @@ export function ClientesPage() {
         )}
         <div className="space-y-3">
           {customers.map((c) => (
-            <div key={c.customer_id} className="rounded-lg border border-border bg-card p-4 space-y-2">
+            <div
+              key={c.customer_id}
+              className="rounded-lg border border-border bg-card p-4 space-y-2 cursor-pointer"
+              tabIndex={0}
+              role="link"
+              aria-label={`Ver historial de ${c.full_name}`}
+              onClick={() => navigate(`/clientes/${c.customer_id}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  navigate(`/clientes/${c.customer_id}`)
+                }
+              }}
+            >
 
               {/* Nombre + botón editar */}
               <div className="flex items-start justify-between gap-2">
@@ -169,15 +205,20 @@ export function ClientesPage() {
                   <p className="font-medium text-foreground truncate">{c.full_name}</p>
                   <p className="text-xs font-mono text-muted-foreground">{c.id_number}</p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => openEditDialog(c)}
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground shrink-0"
-                >
-                  <Pencil className="h-4 w-4" />
-                  <span className="sr-only">Editar</span>
-                </Button>
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      openEditDialog(c)
+                    }}
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground shrink-0"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    <span className="sr-only">Editar</span>
+                  </Button>
+                )}
               </div>
 
               {/* Teléfono y dirección */}

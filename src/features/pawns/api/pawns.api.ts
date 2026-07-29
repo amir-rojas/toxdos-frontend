@@ -39,6 +39,17 @@ export async function createPawn(dto: CreatePawnDto): Promise<Pawn> {
   return parsePawn(data.data)
 }
 
+export async function getPawnsByCustomer(
+  customerId: number,
+  pagination?: { page?: number; limit?: number }
+): Promise<{ data: Pawn[]; meta: PaginationMeta }> {
+  const { data } = await apiClient.get<{ data: Pawn[]; meta: PaginationMeta }>(
+    `/api/pawns/by-customer/${customerId}`,
+    { params: pagination }
+  )
+  return { data: data.data.map(parsePawn), meta: data.meta }
+}
+
 export async function getPawnById(pawnId: number): Promise<PawnWithItems> {
   const { data } = await apiClient.get<{ data: PawnWithItems }>(`/api/pawns/${pawnId}`)
   return data.data
