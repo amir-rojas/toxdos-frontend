@@ -10,7 +10,9 @@ export function useInitializeAuth() {
   const clearAuth = useAuthStore((s) => s.clearAuth)
 
   const { data, isError } = useQuery({
-    queryKey: ['auth', 'me'],
+    // El token forma parte de la key: así un login nuevo (token distinto)
+    // nunca puede leer del caché la data de un usuario anterior.
+    queryKey: ['auth', 'me', token],
     queryFn: getMe,
     enabled: !!token && !user, // solo si hay token pero no hay user cargado
     retry: false,

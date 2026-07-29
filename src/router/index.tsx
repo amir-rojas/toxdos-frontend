@@ -3,6 +3,7 @@ import { LoginPage }       from '@/pages/LoginPage'
 import { DashboardPage }   from '@/pages/DashboardPage'
 import { CajaPage }        from '@/pages/CajaPage'
 import { ClientesPage }    from '@/pages/ClientesPage'
+import { CustomerDetailPage } from '@/pages/CustomerDetailPage'
 import { EmpenosPage }     from '@/pages/EmpenosPage'
 import { PagosPage }       from '@/pages/PagosPage'
 import { VentasPage }      from '@/pages/VentasPage'
@@ -41,20 +42,12 @@ export const router = createBrowserRouter([
       },
       { path: 'caja',        element: <CajaPage /> },
       { path: 'clientes',    element: <ClientesPage /> },
+      { path: 'clientes/:id', element: <CustomerDetailPage /> },
       { path: 'empenos',     element: <EmpenosPage /> },
       { path: 'pagos',       element: <PagosPage /> },
-      {
-        path: 'ventas',
-        element: <RoleGuard allowedRoles={ADMIN_ONLY}><VentasPage /></RoleGuard>,
-      },
-      {
-        path: 'gastos',
-        element: <RoleGuard allowedRoles={ADMIN_ONLY}><GastosPage /></RoleGuard>,
-      },
-      {
-        path: 'movimientos',
-        element: <RoleGuard allowedRoles={ADMIN_ONLY}><MovimientosPage /></RoleGuard>,
-      },
+      { path: 'ventas',      element: <VentasPage /> },
+      { path: 'gastos',      element: <GastosPage /> },
+      { path: 'movimientos', element: <MovimientosPage /> },
       {
         path: 'interes',
         element: <RoleGuard allowedRoles={ADMIN_ONLY}><InteresPage /></RoleGuard>,

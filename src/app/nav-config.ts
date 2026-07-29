@@ -44,9 +44,9 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Finanzas',
     items: [
-      { label: 'Gastos',       href: '/gastos',       icon: Receipt,         roles: ['admin'] },
-      { label: 'Ventas',       href: '/ventas',        icon: ShoppingBag,     roles: ['admin'] },
-      { label: 'Movimientos',  href: '/movimientos',   icon: ArrowLeftRight,  roles: ['admin'] },
+      { label: 'Gastos',       href: '/gastos',       icon: Receipt },
+      { label: 'Ventas',       href: '/ventas',        icon: ShoppingBag },
+      { label: 'Movimientos',  href: '/movimientos',   icon: ArrowLeftRight },
       { label: 'Interés',      href: '/interes',       icon: TrendingUp,      roles: ['admin'] },
     ],
   },

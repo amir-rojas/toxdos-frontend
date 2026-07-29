@@ -23,7 +23,7 @@ import type { Payment } from '@/features/payments/types'
 const PAYMENT_TYPE_OPTIONS: { value: Payment['payment_type']; label: string }[] = [
   { value: 'interest', label: 'Interés' },
   { value: 'partial', label: 'Parcial' },
-  { value: 'redemption', label: 'Rescate' },
+  { value: 'redemption', label: 'Cancelar' },
 ]
 
 const PAYMENT_METHOD_OPTIONS: { value: Payment['payment_method']; label: string }[] = [
@@ -35,7 +35,7 @@ const PAYMENT_METHOD_OPTIONS: { value: Payment['payment_method']; label: string 
 const PAYMENT_TYPE_LABEL: Record<Payment['payment_type'], string> = {
   interest: 'Interés',
   partial: 'Parcial',
-  redemption: 'Rescate',
+  redemption: 'Cancelar',
 }
 
 const PAYMENT_METHOD_LABEL: Record<Payment['payment_method'], string> = {

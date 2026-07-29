@@ -25,6 +25,7 @@ interface PaymentFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   preloadedPawn?: Pawn
+  defaultPaymentType?: 'interest' | 'redemption'
 }
 
 function getDaysUntilDue(dateStr: string): number {
@@ -92,7 +93,7 @@ function PawnContextCard({ pawn }: { pawn: Pawn }) {
 // Solo interest y redemption — parcial removido por política operativa
 const PAYMENT_TYPES = [
   { value: 'interest' as const, label: 'Interés' },
-  { value: 'redemption' as const, label: 'Rescate' },
+  { value: 'redemption' as const, label: 'Cancelar' },
 ]
 
 const PAYMENT_METHODS = [
@@ -101,7 +102,7 @@ const PAYMENT_METHODS = [
   { value: 'transfer' as const, label: 'Transferencia', icon: ArrowLeftRight },
 ]
 
-export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: PaymentFormDialogProps) {
+export function PaymentFormDialog({ open, onOpenChange, preloadedPawn, defaultPaymentType }: PaymentFormDialogProps) {
   const createMutation = useCreatePayment()
   const [createdPaymentId, setCreatedPaymentId] = useState<number | null>(null)
   const [printing, setPrinting] = useState(false)
@@ -145,7 +146,7 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       pawn_id:          preloadedPawn?.pawn_id,
-      payment_type:     'interest',
+      payment_type:     defaultPaymentType ?? 'interest',
       payment_method:   'cash',
       months_paid:      1,
       principal_amount: 0,
@@ -184,13 +185,13 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
       setPrinting(false)
       reset({
         pawn_id:          preloadedPawn?.pawn_id,
-        payment_type:     'interest',
+        payment_type:     defaultPaymentType ?? 'interest',
         payment_method:   'cash',
         months_paid:      1,
         principal_amount: 0,
       })
     }
-  }, [open, preloadedPawn, reset])
+  }, [open, preloadedPawn, defaultPaymentType, reset])
 
   function selectPawn(p: Pawn) {
     setSelectedPawn(p)
@@ -229,7 +230,7 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
         if (values.payment_type === 'interest') {
           setCreatedPaymentId(payment.payment_id)
         } else {
-          toast.success('Empeño rescatado exitosamente')
+          toast.success('Empeño cancelado exitosamente')
           onOpenChange(false)
         }
       },
@@ -339,7 +340,7 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn }: Payment
             {paymentType === 'redemption' && (
               <div className="flex items-start gap-2 rounded-md border border-yellow-500/30 bg-yellow-500/10 px-3 py-2.5 text-sm text-yellow-400">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>Este empeño quedará <strong>RESCATADO</strong>. Los artículos serán devueltos al cliente.</span>
+                <span>Este empeño quedará <strong>CANCELADO</strong>. Los artículos serán devueltos al cliente.</span>
               </div>
             )}
           </div>

@@ -26,6 +26,7 @@ import type { Customer } from '@/features/customers/types'
 interface PawnFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  preloadedCustomer?: Customer
 }
 
 const today = () => new Date().toISOString().split('T')[0]
@@ -35,16 +36,16 @@ const addDays = (days: number) => {
   return d.toISOString().split('T')[0]
 }
 
-export function PawnFormDialog({ open, onOpenChange }: PawnFormDialogProps) {
+export function PawnFormDialog({ open, onOpenChange, preloadedCustomer }: PawnFormDialogProps) {
   const createMutation = useCreatePawn()
   const [createdPawnId, setCreatedPawnId] = useState<number | null>(null)
   const [printing, setPrinting] = useState(false)
   const { data: categories = [] } = useCategories()
 
   // Customer combobox state
-  const [customerInput, setCustomerInput] = useState('')
+  const [customerInput, setCustomerInput] = useState(preloadedCustomer?.full_name ?? '')
   const [customerSearch, setCustomerSearch] = useState('')
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(preloadedCustomer ?? null)
   const [showDropdown, setShowDropdown] = useState(false)
   const [createCustomerOpen, setCreateCustomerOpen] = useState(false)
   const suppressNextFocus = useRef(false)
@@ -68,7 +69,7 @@ export function PawnFormDialog({ open, onOpenChange }: PawnFormDialogProps) {
   } = useForm<PawnFormValues>({
     resolver: zodResolver(pawnSchema),
     defaultValues: {
-      customer_id: undefined,
+      customer_id: preloadedCustomer?.customer_id,
       loan_amount: undefined,
       interest_rate: undefined,
       custody_rate: undefined,
@@ -85,7 +86,7 @@ export function PawnFormDialog({ open, onOpenChange }: PawnFormDialogProps) {
   useEffect(() => {
     if (open) {
       reset({
-        customer_id: undefined,
+        customer_id: preloadedCustomer?.customer_id,
         loan_amount: undefined,
         interest_rate: undefined,
         custody_rate: undefined,
@@ -94,14 +95,14 @@ export function PawnFormDialog({ open, onOpenChange }: PawnFormDialogProps) {
         due_date: addDays(30),
         items: [{ description: '', appraised_value: undefined as unknown as number }],
       })
-      setCustomerInput('')
+      setCustomerInput(preloadedCustomer?.full_name ?? '')
       setCustomerSearch('')
-      setSelectedCustomer(null)
+      setSelectedCustomer(preloadedCustomer ?? null)
       setShowDropdown(false)
       setCreatedPawnId(null)
       setPrinting(false)
     }
-  }, [open, reset])
+  }, [open, reset, preloadedCustomer])
 
   function selectCustomer(c: Customer) {
     setSelectedCustomer(c)

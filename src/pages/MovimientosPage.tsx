@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { SlidersHorizontal, TrendingUp, TrendingDown, ExternalLink } from 'lucide-react'
+import { SlidersHorizontal, TrendingUp, TrendingDown, ExternalLink, Printer } from 'lucide-react'
 import { ReferenceDetailModal } from '@/features/movements/components/ReferenceDetailModal'
 import {
   Table,
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useMovements } from '@/features/movements/api/useMovements'
+import { printDailyMovementsReport } from '@/features/movements/api/movements.api'
 import { useUsers } from '@/features/users/api/useUsers'
 import { useCurrentUser } from '@/shared/hooks/useCurrentUser'
 import { DateRangeFilter, type DateRange } from '@/shared/components/DateRangeFilter'
@@ -27,7 +28,7 @@ const CATEGORY_LABEL: Record<MovementCategory, string> = {
   loan:              'Préstamo',
   interest_payment:  'Pago interés',
   custody_payment:   'Pago custodia',
-  redemption:        'Rescate',
+  redemption:        'Cancelar',
   sale:              'Venta',
   operating_expense: 'Gasto operativo',
   cash_withdrawal:   'Retiro',
@@ -103,6 +104,8 @@ export function MovimientosPage() {
   const [selectedRef, setSelectedRef] = useState<{ type: ReferenceType; id: number } | null>(null)
   const openRef = (type: ReferenceType, id: number) => setSelectedRef({ type, id })
 
+  const [printing, setPrinting] = useState(false)
+
   const currentUser = useCurrentUser()
   const isAdmin     = currentUser?.role === 'admin'
 
@@ -128,6 +131,15 @@ export function MovimientosPage() {
   const balance  = totalIn - totalOut
   const balancePositive = balance >= 0
 
+  async function handlePrintDailyReport() {
+    setPrinting(true)
+    try {
+      await printDailyMovementsReport(isAdmin && userIdFilter ? Number(userIdFilter) : undefined)
+    } finally {
+      setPrinting(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
 
@@ -139,6 +151,15 @@ export function MovimientosPage() {
             Libro mayor de caja — todas las entradas y salidas.
           </p>
         </div>
+        <Button
+          variant="outline"
+          onClick={handlePrintDailyReport}
+          disabled={printing}
+          className="border-border text-muted-foreground hover:text-foreground shrink-0"
+        >
+          <Printer className="h-4 w-4 mr-2" />
+          {printing ? 'Abriendo...' : 'Imprimir reporte diario'}
+        </Button>
       </div>
 
       {/* Toggle filtros — mobile */}

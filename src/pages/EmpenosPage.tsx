@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { PlusCircle, AlertTriangle, CreditCard, Gavel, Search, CalendarDays, X, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   Table,
@@ -34,7 +34,7 @@ const STATUS_OPTIONS = [
   { value: 'overdue', label: 'Vencidos' },
   { value: 'active', label: 'Activo' },
   { value: 'renewed', label: 'Renovado' },
-  { value: 'redeemed', label: 'Redimido' },
+  { value: 'redeemed', label: 'Cancelado' },
   { value: 'forfeited', label: 'Perdido' },
 ]
 
@@ -48,7 +48,7 @@ const STATUS_BADGE: Record<Pawn['status'], string> = {
 const STATUS_LABEL: Record<Pawn['status'], string> = {
   active: 'Activo',
   renewed: 'Renovado',
-  redeemed: 'Redimido',
+  redeemed: 'Cancelado',
   forfeited: 'Perdido',
 }
 
@@ -127,6 +127,7 @@ function DueBadge({ dateStr }: { dateStr: string }) {
 }
 
 export function EmpenosPage() {
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? '')
   const [searchInput, setSearchInput] = useState('')
@@ -373,7 +374,13 @@ export function EmpenosPage() {
             {pawns.map((p) => (
               <TableRow key={p.pawn_id} className="border-border hover:bg-muted/30">
                 <TableCell className="text-foreground text-sm">
-                  <span className="font-medium">{p.customer_name}</span>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/clientes/${p.customer_id}`)}
+                    className="font-medium hover:underline hover:text-primary text-left"
+                  >
+                    {p.customer_name}
+                  </button>
                   <span className="text-muted-foreground text-xs ml-1.5">({p.customer_id_number})</span>
                 </TableCell>
                 <TableCell className="text-foreground text-sm max-w-[200px]">
@@ -453,7 +460,13 @@ export function EmpenosPage() {
               {/* Nombre + estado */}
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="font-medium text-foreground truncate">{p.customer_name}</p>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/clientes/${p.customer_id}`)}
+                    className="font-medium text-foreground truncate hover:underline hover:text-primary block text-left"
+                  >
+                    {p.customer_name}
+                  </button>
                   <p className="text-xs text-muted-foreground">{p.customer_id_number}</p>
                 </div>
                 <span

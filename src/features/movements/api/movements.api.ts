@@ -38,3 +38,14 @@ export async function getMovements(params?: {
   )
   return { data: data.data.map(parseMovement), meta: data.meta }
 }
+
+export async function printDailyMovementsReport(userId?: number): Promise<void> {
+  const url = userId
+    ? `/api/movements/report/daily?user_id=${userId}`
+    : '/api/movements/report/daily'
+  const response = await apiClient.get<string>(url, { responseType: 'text' })
+  const blob = new Blob([response.data], { type: 'text/html' })
+  const blobUrl = URL.createObjectURL(blob)
+  window.open(blobUrl, '_blank')
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 2000)
+}
