@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import logoPng from '@/assets/logo.png'
 import {
   Sidebar,
@@ -23,14 +24,18 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ChevronUp, LogOut, User } from 'lucide-react'
 import { useAuthStore } from '@/shared/store/auth.store'
+import { useSessionStore } from '@/shared/store/session.store'
+import { QuickOpsPanel } from '@/features/quick-ops/components/QuickOpsPanel'
 import { getNavForRole } from './nav-config'
 
 export function AppSidebar() {
   const user = useAuthStore((s) => s.user)
   const clearAuth = useAuthStore((s) => s.clearAuth)
+  const setActiveSession = useSessionStore((s) => s.setActiveSession)
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { isMobile, setOpenMobile } = useSidebar()
+  const queryClient = useQueryClient()
 
   function handleNavClick() {
     if (isMobile) setOpenMobile(false)
@@ -38,6 +43,12 @@ export function AppSidebar() {
 
   function handleLogout() {
     clearAuth()
+    // Evita que datos cacheados del usuario anterior (auth/me, dashboard, sesión de
+    // caja activa, etc.) se filtren al usuario que inicie sesión a continuación en
+    // la misma pestaña. session.store vive fuera de React Query, así que
+    // queryClient.clear() no lo alcanza — hay que resetearlo aparte.
+    queryClient.clear()
+    setActiveSession(null)
     navigate('/login', { replace: true })
   }
 
@@ -101,6 +112,7 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroup>
         ))}
+        {user?.role === 'cashier' && <QuickOpsPanel />}
       </SidebarContent>
 
       <SidebarSeparator />

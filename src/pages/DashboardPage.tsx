@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PlusCircle, CreditCard, ShoppingCart, AlertTriangle, Gem, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { PlusCircle, ShoppingCart, AlertTriangle, Gem, ArrowRight, CheckCircle2, UserPlus, RefreshCw, Ban } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { PawnFormDialog } from '@/features/pawns/components/PawnFormDialog'
-import { PaymentFormDialog } from '@/features/payments/components/PaymentFormDialog'
 import { SaleFormDialog } from '@/features/sales/components/SaleFormDialog'
 import { OpenSessionDialog } from '@/features/cash-sessions/components/OpenSessionDialog'
+import { useQuickOpsActions } from '@/features/quick-ops/hooks/useQuickOpsActions'
 import { useDashboardSummary } from '@/features/dashboard/api/useDashboardSummary'
 import { useSessionStore } from '@/shared/store/session.store'
 import { useCurrentUser } from '@/shared/hooks/useCurrentUser'
@@ -118,8 +117,9 @@ export function DashboardPage() {
   const sessionIdForQuery = !isAdmin && activeSession ? activeSession.session_id : undefined
   const { data, isLoading } = useDashboardSummary(sessionIdForQuery)
 
-  const [pawnOpen, setPawnOpen]         = useState(false)
-  const [paymentOpen, setPaymentOpen]   = useState(false)
+  const { openNuevoContrato, openNuevoCliente, openRenovacion, openCancelacion, QuickOpsDialogs } =
+    useQuickOpsActions()
+
   const [saleOpen, setSaleOpen]         = useState(false)
   const [openSessionOpen, setOpenSessionOpen] = useState(false)
 
@@ -159,11 +159,11 @@ export function DashboardPage() {
         )}
 
         {/* Quick actions */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <Button
             variant="outline"
             disabled={!canOperate}
-            onClick={() => setPawnOpen(true)}
+            onClick={openNuevoContrato}
             className="h-16 flex-col gap-1.5 text-sm font-medium border-border hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-40"
           >
             <PlusCircle className="h-5 w-5 text-primary" />
@@ -172,11 +172,29 @@ export function DashboardPage() {
           <Button
             variant="outline"
             disabled={!canOperate}
-            onClick={() => setPaymentOpen(true)}
+            onClick={openNuevoCliente}
             className="h-16 flex-col gap-1.5 text-sm font-medium border-border hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-40"
           >
-            <CreditCard className="h-5 w-5 text-primary" />
-            Registrar pago
+            <UserPlus className="h-5 w-5 text-primary" />
+            Nuevo Cliente
+          </Button>
+          <Button
+            variant="outline"
+            disabled={!canOperate}
+            onClick={openRenovacion}
+            className="h-16 flex-col gap-1.5 text-sm font-medium border-border hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-40"
+          >
+            <RefreshCw className="h-5 w-5 text-primary" />
+            Renovación
+          </Button>
+          <Button
+            variant="outline"
+            disabled={!canOperate}
+            onClick={openCancelacion}
+            className="h-16 flex-col gap-1.5 text-sm font-medium border-border hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-40"
+          >
+            <Ban className="h-5 w-5 text-primary" />
+            Cancelado
           </Button>
           <Button
             variant="outline"
@@ -297,8 +315,7 @@ export function DashboardPage() {
       </div>
 
       {/* Dialogs */}
-      <PawnFormDialog open={pawnOpen} onOpenChange={setPawnOpen} />
-      <PaymentFormDialog open={paymentOpen} onOpenChange={setPaymentOpen} />
+      <QuickOpsDialogs />
       <SaleFormDialog open={saleOpen} onOpenChange={setSaleOpen} />
       <OpenSessionDialog open={openSessionOpen} onOpenChange={setOpenSessionOpen} />
     </div>
