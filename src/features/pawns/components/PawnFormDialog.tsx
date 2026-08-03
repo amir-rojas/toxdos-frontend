@@ -269,23 +269,6 @@ export function PawnFormDialog({ open, onOpenChange, preloadedCustomer }: PawnFo
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-foreground/80">Tipo de interés</Label>
-              <Controller
-                control={control}
-                name="interest_type"
-                render={({ field }) => (
-                  <select
-                    {...field}
-                    className="w-full h-11 rounded-md border border-border bg-input/50 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="monthly">Mensual</option>
-                    <option value="daily">Diario</option>
-                  </select>
-                )}
-              />
-            </div>
-
-            <div className="space-y-1.5">
               <Label className="text-foreground/80">Fecha inicio</Label>
               <Input
                 type="date"
