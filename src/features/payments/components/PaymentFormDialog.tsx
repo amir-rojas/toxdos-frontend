@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useForm, useWatch, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
-import { toast } from 'sonner'
 import { AlertTriangle, Banknote, QrCode, ArrowLeftRight, Printer } from 'lucide-react'
 import {
   Dialog,
@@ -105,6 +104,7 @@ const PAYMENT_METHODS = [
 export function PaymentFormDialog({ open, onOpenChange, preloadedPawn, defaultPaymentType }: PaymentFormDialogProps) {
   const createMutation = useCreatePayment()
   const [createdPaymentId, setCreatedPaymentId] = useState<number | null>(null)
+  const [submittedPaymentType, setSubmittedPaymentType] = useState<'interest' | 'redemption' | null>(null)
   const [printing, setPrinting] = useState(false)
 
   // Pawn combobox state (solo cuando no hay preloadedPawn)
@@ -182,6 +182,7 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn, defaultPa
       setPawnInput('')
       setShowDropdown(false)
       setCreatedPaymentId(null)
+      setSubmittedPaymentType(null)
       setPrinting(false)
       reset({
         pawn_id:          preloadedPawn?.pawn_id,
@@ -227,12 +228,8 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn, defaultPa
     createMutation.mutate(dto, {
       onSuccess: (payment) => {
         isSubmittingRef.current = false
-        if (values.payment_type === 'interest') {
-          setCreatedPaymentId(payment.payment_id)
-        } else {
-          toast.success('Empeño cancelado exitosamente')
-          onOpenChange(false)
-        }
+        setCreatedPaymentId(payment.payment_id)
+        setSubmittedPaymentType(payment.payment_type === 'redemption' ? 'redemption' : 'interest')
       },
       onError: () => {
         isSubmittingRef.current = false
@@ -480,7 +477,9 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn, defaultPa
           {createdPaymentId ? (
             <div className="pt-2 space-y-3">
               <div className="bg-green-500/10 border border-green-500/30 rounded-md px-3 py-2">
-                <p className="text-green-400 text-sm font-medium">Renovación registrada correctamente</p>
+                <p className="text-green-400 text-sm font-medium">
+                  {submittedPaymentType === 'redemption' ? 'Empeño cancelado exitosamente' : 'Renovación registrada correctamente'}
+                </p>
               </div>
               <DialogFooter>
                 <Button
@@ -498,7 +497,7 @@ export function PaymentFormDialog({ open, onOpenChange, preloadedPawn, defaultPa
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Printer className="h-4 w-4 mr-2" />
-                  {printing ? 'Abriendo...' : 'Imprimir comprobante'}
+                  {printing ? 'Abriendo...' : submittedPaymentType === 'redemption' ? 'Imprimir comprobante de cancelación' : 'Imprimir comprobante'}
                 </Button>
               </DialogFooter>
             </div>
